@@ -1,0 +1,4 @@
+# Nmap 7.94SVN scan initiated Sat Sep 19 16:13:18 2026 as: nmap -sn -oN "/mnt/d/Recon tool/reports/127.0.0.1_2026-09-19_161314/nmap/nmap_host_discovery.txt" 127.0.0.1
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.00026s latency).
+# Nmap done at Sat Sep 19 16:13:18 2026 -- 1 IP address (1 host up) scanned in 0.02 seconds

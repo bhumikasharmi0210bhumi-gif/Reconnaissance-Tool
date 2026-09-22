@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReconX Security Reconnaissance Report</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-card: #21262d;
+            --border-color: #30363d;
+            --text-primary: #c9d1d9;
+            --text-muted: #8b949e;
+            --text-heading: #f0f6fc;
+            --accent-cyan: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-yellow: #d29922;
+            --accent-red: #f85149;
+            --accent-purple: #bc8cff;
+            --code-bg: #0b0f14;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 24px;
+        }
+        .container { max-width: 1280px; margin: 0 auto; }
+        
+        /* Header Banner */
+        .header {
+            background: linear-gradient(135deg, #161b22 0%, #1f2937 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .header-title h1 {
+            color: var(--text-heading);
+            font-size: 1.85rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-title p { color: var(--text-muted); font-size: 0.95rem; margin-top: 6px; }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-success { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .badge-warning { background: rgba(210, 153, 34, 0.2); color: var(--accent-yellow); border: 1px solid var(--accent-yellow); }
+        .badge-danger  { background: rgba(248, 81, 73, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .badge-info    { background: rgba(88, 166, 255, 0.2); color: var(--accent-cyan); border: 1px solid var(--accent-cyan); }
+        .badge-purple  { background: rgba(188, 140, 255, 0.2); color: var(--accent-purple); border: 1px solid var(--accent-purple); }
+
+        /* KPI Metrics Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .kpi-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .kpi-card:hover { transform: translateY(-2px); border-color: var(--accent-cyan); }
+        .kpi-value { font-size: 1.8rem; font-weight: 700; color: var(--text-heading); margin-top: 4px; }
+        .kpi-label { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.6px; }
+
+        /* Navigation Bar */
+        .nav-bar {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 18px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 14px;
+            overflow-x: auto;
+        }
+        .nav-bar a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .nav-bar a:hover { text-decoration: underline; }
+
+        /* Main Section Cards */
+        .card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+        .card-title { font-size: 1.25rem; color: var(--text-heading); font-weight: 600; }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th { background-color: var(--bg-card); color: var(--text-muted); font-weight: 600; }
+        tr:hover { background-color: rgba(255, 255, 255, 0.02); }
+
+        /* Collapsible Raw Outputs */
+        details {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-top: 14px;
+            overflow: hidden;
+        }
+        summary {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--accent-cyan);
+            background-color: var(--bg-card);
+            user-select: none;
+        }
+        summary:hover { background-color: #282e37; }
+        pre {
+            padding: 16px;
+            overflow-x: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.85rem;
+            color: #7ee787;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Disclaimer & Footer */
+        .disclaimer-box {
+            background: rgba(210, 153, 34, 0.1);
+            border: 1px solid var(--accent-yellow);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+            font-size: 0.88rem;
+        }
+        .footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 32px;
+            padding-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header Section -->
+    <div class="header">
+        <div class="header-title">
+            <h1>ReconX Security Report</h1>
+            <p>Automated Reconnaissance & Attack-Surface Enumeration</p>
+        </div>
+        <div>
+            <span class="badge badge-success">Status: Scan Completed</span>
+            <span class="badge badge-purple">Mode: QUICK</span>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-bar">
+        <a href="#summary">Executive Summary</a>
+        <a href="#target-info">Target Profile</a>
+        <a href="#reachability">Reachability</a>
+        <a href="#dns">DNS Recon</a>
+        <a href="#whois">WHOIS</a>
+        <a href="#hosts">Host Discovery</a>
+        <a href="#ports">Ports & Services</a>
+        <a href="#nse">NSE Modules</a>
+        <a href="#findings">Validation Findings</a>
+        <a href="#raw">Raw Artifacts</a>
+    </div>
+
+    <!-- KPI Metric Dashboard -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">Target Status</div>
+            <div class="kpi-value" style="color: var(--accent-green);">
+                ONLINE
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Live Hosts</div>
+            <div class="kpi-value">1</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Open Ports</div>
+            <div class="kpi-value" style="color: var(--accent-cyan);">0</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Services Identified</div>
+            <div class="kpi-value">0</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">DNS Records</div>
+            <div class="kpi-value">11</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Potential Findings</div>
+            <div class="kpi-value" style="color: var(--accent-yellow);">
+                1
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 1: Executive Summary & Target Profile -->
+    <div class="card" id="target-info">
+        <div class="card-header">
+            <h2 class="card-title">1. Target Information & Environment</h2>
+        </div>
+        <table>
+            <tr><th width="30%">Target Specification</th><td><strong>127.0.0.1</strong></td></tr>
+            <tr><th>Target Classification</th><td><span class="badge badge-info">IPV4</span></td></tr>
+            <tr><th>Resolved IPv4 Address</th><td>127.0.0.1</td></tr>
+            <tr><th>Scan Start Time</th><td>2026-09-19 16:13:14</td></tr>
+            <tr><th>Scan End Time</th><td>2026-09-19 16:13:19</td></tr>
+            <tr><th>Total Duration</th><td>5s</td></tr>
+            <tr><th>Scanner Platform</th><td>WINDOWS-S8G5HJE (Linux 6.6.87.2-microsoft-standard-WSL2 x86_64)</td></tr>
+            <tr><th>Scan Mode Executed</th><td>QUICK </td></tr>
+        </table>
+    </div>
+
+    <!-- Section 2: Ping & Reachability -->
+    <div class="card" id="reachability">
+        <div class="card-header">
+            <h2 class="card-title">2. Reachability & ICMP Probes</h2>
+            <span class="badge badge-success">Reachable</span>
+        </div>
+        <table>
+            <tr><th width="30%">Packets Transmitted</th><td>4</td></tr>
+            <tr><th>Packets Received</th><td>4</td></tr>
+            <tr><th>Packet Loss Percentage</th><td>0%</td></tr>
+            <tr><th>Latency (Min / Avg / Max)</th><td>0.041 ms / 0.051 ms / 0.058 ms</td></tr>
+        </table>
+        <details>
+            <summary>View Raw Ping Probe Output</summary>
+            <pre>PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.054 ms
+64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.058 ms
+64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.052 ms
+64 bytes from 127.0.0.1: icmp_seq=4 ttl=64 time=0.041 ms
+
+--- 127.0.0.1 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3035ms
+rtt min/avg/max/mdev = 0.041/0.051/0.058/0.006 ms</pre>
+        </details>
+    </div>
+
+    <!-- Section 3: DNS Reconnaissance -->
+    <div class="card" id="dns">
+        <div class="card-header">
+            <h2 class="card-title">3. DNS Reconnaissance & Resolution Matrix</h2>
+            <span class="badge badge-info">11 Records</span>
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 14px;">Direct queries executed via BIND <code>dig</code> for primary DNS resource records.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th width="15%">Record Type</th>
+                    <th>Extracted DNS Answers</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>A</strong></td><td><pre style="padding:4px; background:none; color:#c9d1d9;">A 127.0.0.1   </pre></td></tr>
+                <tr><td><strong>AAAA</strong></td><td><pre style="padding:4px; background:none; color:#c9d1d9;">A 127.0.0.1   </pre></td></tr>
+                <tr><td><strong>MX</strong></td><td><pre style="padding:4px; background:none; color:#c9d1d9;">A 127.0.0.1   </pre></td></tr>
+                <tr><td><strong>NS</strong></td><td><pre style="padding:4px; background:none; color:#c9d1d9;">A 127.0.0.1   </pre></td></tr>
+                <tr><td><strong>TXT</strong></td><td><pre style="padding:4px; background:none; color:#c9d1d9;">A 127.0.0.1   </pre></td></tr>
+                <tr><td><strong>SOA</strong></td><td><pre style="padding:4px; background:none; color:#c9d1d9;">A 127.0.0.1   </pre></td></tr>
+                <tr><td><strong>CNAME</strong></td><td><pre style="padding:4px; background:none; color:#c9d1d9;">A 127.0.0.1   </pre></td></tr>
+                <tr><td><strong>SRV</strong></td><td><pre style="padding:4px; background:none; color:#c9d1d9;">A 127.0.0.1   </pre></td></tr>
+                <tr><td><strong>CAA</strong></td><td><pre style="padding:4px; background:none; color:#c9d1d9;">A 127.0.0.1   </pre></td></tr>
+                <tr><td><strong>ANY</strong></td><td><pre style="padding:4px; background:none; color:#c9d1d9;">A 127.0.0.1   </pre></td></tr>
+                <tr><td><strong>Reverse DNS (PTR)</strong></td><td><pre style="padding:4px; background:none; color:#c9d1d9;">1.0.0.127.in-addr.arpa. 86400 IN PTR localhost.</pre></td></tr>
+            </tbody>
+        </table>
+        <details>
+            <summary>View Authoritative DNS Trace (+trace)</summary>
+            <pre>;; global options: +cmd
+. 518400 IN NS a.root-servers.net.
+example.com. 172800 IN NS ns1.example.com.</pre>
+        </details>
+    </div>
+
+    <!-- Section 4: WHOIS Information -->
+    <div class="card" id="whois">
+        <div class="card-header">
+            <h2 class="card-title">4. WHOIS Domain & Organization Information</h2>
+        </div>
+        <table>
+            <tr><th width="30%">Domain Name</th><td>EXAMPLE.COM</td></tr>
+            <tr><th>Registrar</th><td>Example Registrar Inc</td></tr>
+            <tr><th>Creation / Registration Date</th><td>1995-08-14T04:00:00Z</td></tr>
+            <tr><th>Last Updated Date</th><td>2023-08-14T07:01:44Z</td></tr>
+            <tr><th>Expiration Date</th><td>2026-08-13T04:00:00Z</td></tr>
+            <tr><th>Organization</th><td>Example Security Lab</td></tr>
+            <tr><th>Country</th><td>US</td></tr>
+        </table>
+        <details>
+            <summary>View Complete Raw WHOIS Output</summary>
+            <pre>Domain Name: EXAMPLE.COM
+Registry Domain ID: 2336799_DOMAIN_COM-VRSN
+Registrar: Example Registrar Inc
+Creation Date: 1995-08-14T04:00:00Z
+Updated Date: 2023-08-14T07:01:44Z
+Registry Expiry Date: 2026-08-13T04:00:00Z
+Registrant Organization: Example Security Lab
+Registrant Country: US
+Name Server: NS1.EXAMPLE.COM
+Name Server: NS2.EXAMPLE.COM</pre>
+        </details>
+    </div>
+
+    <!-- Section 5: Host Discovery -->
+    <div class="card" id="hosts">
+        <div class="card-header">
+            <h2 class="card-title">5. Host Discovery Results (-sn)</h2>
+            <span class="badge badge-info">1 Active Host(s)</span>
+        </div>
+        <details open>
+            <summary>Discovered Hosts & Network Interfaces</summary>
+            <pre># Nmap 7.94SVN scan initiated Sat Sep 19 16:13:18 2026 as: nmap -sn -oN &quot;/mnt/d/Recon tool/reports/127.0.0.1_2026-09-19_161314/nmap/nmap_host_discovery.txt&quot; 127.0.0.1
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.00026s latency).
+# Nmap done at Sat Sep 19 16:13:18 2026 -- 1 IP address (1 host up) scanned in 0.02 seconds</pre>
+        </details>
+    </div>
+
+    <!-- Section 6: Open Ports & Services -->
+    <div class="card" id="ports">
+        <div class="card-header">
+            <h2 class="card-title">6. Open TCP Ports & Detected Services</h2>
+            <span class="badge badge-info">0 Open Port(s)</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th width="15%">Port</th>
+                    <th width="12%">Protocol</th>
+                    <th width="15%">State</th>
+                    <th width="20%">Service</th>
+                    <th>Product / Version Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="5"><em>No open ports identified in current scan parameters.</em></td></tr>
+            </tbody>
+        </table>
+        <details>
+            <summary>View Raw Top 100 Port Scan Output</summary>
+            <pre># Nmap 7.94SVN scan initiated Sat Sep 19 16:13:18 2026 as: nmap -sT --top-ports 100 --open -oN &quot;/mnt/d/Recon tool/reports/127.0.0.1_2026-09-19_161314/nmap/nmap_top100.txt&quot; 127.0.0.1
+# Nmap done at Sat Sep 19 16:13:18 2026 -- 1 IP address (1 host up) scanned in 0.07 seconds</pre>
+        </details>
+        <details>
+            <summary>View Service Version Detection Output (-sV)</summary>
+            <pre># Nmap 7.94SVN scan initiated Sat Sep 19 16:13:18 2026 as: nmap -sV --version-light -oN &quot;/mnt/d/Recon tool/reports/127.0.0.1_2026-09-19_161314/nmap/nmap_service_detection.txt&quot; 127.0.0.1
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.00037s latency).
+All 1000 scanned ports on localhost (127.0.0.1) are in ignored states.
+Not shown: 1000 closed tcp ports (conn-refused)
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Sat Sep 19 16:13:19 2026 -- 1 IP address (1 host up) scanned in 0.66 seconds</pre>
+        </details>
+    </div>
+
+    <!-- Section 7: Operating System Detection -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">7. Operating System Fingerprinting (-O)</h2>
+        </div>
+        <details open>
+            <summary>OS Fingerprint Output</summary>
+            <pre><em>No output recorded or module not triggered.</em></pre>
+        </details>
+    </div>
+
+    <!-- Section 8: NSE Modules -->
+    <div class="card" id="nse">
+        <div class="card-header">
+            <h2 class="card-title">8. Nmap Scripting Engine (NSE) Enumeration</h2>
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 12px;">Results from safe, non-destructive discovery and enumeration scripts.</p>
+
+        <details>
+            <summary>Default Nmap Scripts (-sC)</summary>
+            <pre><em>No output recorded or module not triggered.</em></pre>
+        </details>
+
+        <details>
+            <summary>Safe Category NSE Scripts (default, safe)</summary>
+            <pre><em>No output recorded or module not triggered.</em></pre>
+        </details>
+
+        <details>
+            <summary>HTTP Web Service Enumeration (Title, Headers, Methods, Enum)</summary>
+            <pre><em>No output recorded or module not triggered.</em></pre>
+        </details>
+
+        <details>
+            <summary>SSL/TLS Certificate & Cipher Suite Inspection</summary>
+            <pre><em>No output recorded or module not triggered.</em></pre>
+        </details>
+
+        <details>
+            <summary>DNS Service Enumeration</summary>
+            <pre><em>No output recorded or module not triggered.</em></pre>
+        </details>
+    </div>
+
+    <!-- Section 9: Findings Requiring Manual Validation -->
+    <div class="card" id="findings">
+        <div class="card-header">
+            <h2 class="card-title">9. Findings Requiring Manual Validation</h2>
+            <span class="badge badge-warning">1 Potential Finding(s)</span>
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 14px;">
+            <strong>Important Methodology Note:</strong> Automated tools identify service indicators and version banners. 
+            Automated flags must never be assumed to be confirmed vulnerabilities without rigorous manual validation within authorized scope.
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th width="14%">Category</th>
+                    <th width="30%">Finding Title</th>
+                    <th>Context & Manual Verification Rationale</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="badge badge-info">INFO</span></td>
+                    <td><strong>Host Reachability</strong></td>
+                    <td>Host responded to ICMP probes with 0.051 ms avg latency.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Section 10: Raw Scan Outputs -->
+    <div class="card" id="raw">
+        <div class="card-header">
+            <h2 class="card-title">10. Raw Execution Log</h2>
+        </div>
+        <details>
+            <summary>View Complete reconx.log</summary>
+            <pre>[2026-09-19 16:13:14] [INFO] ReconX v1.0.0 initialized for target: 127.0.0.1 (IPV4)
+[2026-09-19 16:13:14] [INFO] Scan mode: QUICK | Output Directory: /mnt/d/Recon tool/reports/127.0.0.1_2026-09-19_161314
+[2026-09-19 16:13:14] [INFO] Initiating reconnaissance workflow in [QUICK] mode...
+[2026-09-19 16:13:14] [INFO] Executing reachability check (ICMP ping)...
+[2026-09-19 16:13:17] [SUCCESS] Host is REACHABLE (4/4 probes received, avg latency: 0.051 ms)
+[2026-09-19 16:13:17] [INFO] Executing DNS enumeration using DIG...
+[2026-09-19 16:13:18] [INFO] Performing Reverse DNS lookup for 127.0.0.1...
+[2026-09-19 16:13:18] [INFO] Collecting authoritative DNS delegation trace (dig +trace)...
+[2026-09-19 16:13:18] [SUCCESS] DNS reconnaissance completed (11 total records discovered)
+[2026-09-19 16:13:18] [INFO] Performing WHOIS registration lookup...
+[2026-09-19 16:13:18] [SUCCESS] WHOIS lookup completed successfully.
+[2026-09-19 16:13:18] [INFO] Executing Nmap host discovery (ping sweep / live host resolution)...
+[2026-09-19 16:13:18] [SUCCESS] Host discovery completed. Identified 1 active host(s).
+[2026-09-19 16:13:18] [INFO] Executing TCP port scan...
+[2026-09-19 16:13:18] [INFO] Scanning top 100 TCP ports (TCP Connect -sT)...
+[2026-09-19 16:13:18] [SUCCESS] Port scanning completed. Found 0 open TCP port(s).
+[2026-09-19 16:13:18] [INFO] Executing service version detection (-sV)...
+[2026-09-19 16:13:19] [SUCCESS] Service version detection completed (0 service banner(s) fingerprinted).
+[2026-09-19 16:13:19] [INFO] Compiling self-contained HTML reconnaissance dashboard...</pre>
+        </details>
+    </div>
+
+    <!-- Methodology & Security Disclaimer -->
+    <div class="disclaimer-box">
+        <h4 style="color: var(--accent-yellow); margin-bottom: 8px;">Reconnaissance Methodology & Legal Disclaimer</h4>
+        <p>
+            This reconnaissance report was generated by <strong>ReconX</strong> strictly for authorized testing purposes.
+            The scan activities performed include non-destructive ICMP reachability checks, standard RFC-compliant DNS queries,
+            WHOIS queries, TCP port enumeration, banner version detection, and non-exploitative NSE enumeration. 
+            No exploit payloads, brute-force attempts, or denial-of-service tests were performed.
+        </p>
+        <p style="margin-top: 8px; color: var(--text-muted);">
+            All information contained herein must be treated with appropriate confidentiality and used strictly within the bounds 
+            of authorized Rules of Engagement (RoE).
+        </p>
+    </div>
+
+    <div class="footer">
+        Generated by ReconX v1.0.0 &bull; Modern Bash Reconnaissance & Enumeration Toolkit
+    </div>
+
+</div>
+</body>
+</html>
